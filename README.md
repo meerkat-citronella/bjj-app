@@ -1,3 +1,7 @@
+Brazilian Jiu Jitsu app. Very work in progress at the moment.
+
+---------------- REACT BOILERPLATE ----------------
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
