@@ -2,7 +2,6 @@ import React from "react";
 import firebase from "firebase";
 import "./App.css";
 
-import Test from "./widgets/Test";
 import AddUser from "./widgets/AddUser";
 import ShowUser from "./widgets/ShowUser";
 
@@ -10,9 +9,9 @@ class App extends React.Component {
 	constructor() {
 		super();
 		this.state = {
-			email: " ",
-			fullname: " ",
-			firebaseData: "placeholder",
+			email: "",
+			fullname: "",
+			firebaseData: "",
 		};
 	}
 
@@ -33,18 +32,23 @@ class App extends React.Component {
 		).path;
 
 		const userDocData = (await db.doc(userRefPath).get()).data(); // data() doesn't return a promise
+		const usersCollection = (await db.collection("users").get()).docs;
 
-		const email = userDocData.email;
-		const fullname = userDocData.fullname;
+		const usersDocsDataArr = usersCollection.map((QueryDocSnap) => {
+			return JSON.stringify(QueryDocSnap.data());
+		});
 
-		const firebaseData = `email: ${email}, fullname: ${fullname}`;
+		// console.log(usersDocsDataArr);
 
-		// console.log(firebaseData);
+		// const email = userDocData.email;
+		// const fullname = userDocData.fullname;
+
+		// const firebaseData = `email: ${email}, fullname: ${fullname}`;
 
 		this.setState({
 			fullname: " ",
 			email: " ",
-			firebaseData: firebaseData,
+			firebaseData: usersDocsDataArr,
 		});
 
 		// console.log(this.state);
