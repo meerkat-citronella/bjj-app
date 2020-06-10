@@ -1,17 +1,28 @@
 import React from "react";
 import firebase from "firebase";
+import "./firebase/firebaseConfig";
 import "./App.css";
 
+import AddTechnique from "./widgets/AddTechnique";
+import ShowFirebaseData from "./widgets/ShowFirebaseData";
 import AddUser from "./widgets/AddUser";
-import ShowUser from "./widgets/ShowUser";
 
 class App extends React.Component {
 	constructor() {
 		super();
 		this.state = {
-			email: "",
-			fullname: "",
+			// add technique to firebase
+			startingPosition: "choose",
+			topBottom: "top",
+			offenseDefense: "offense",
+			endsInSubmission: "no",
+			endingPosition: "choose",
+			fullname: "", //DEFUNCT
 			firebaseData: "",
+
+			// add user
+			email: "",
+			password: "",
 		};
 	}
 
@@ -19,51 +30,88 @@ class App extends React.Component {
 		this.setState({ [event.target.name]: event.target.value });
 	};
 
-	addUser = async (event) => {
+	pushTechniqueToFirebase = async (event) => {
 		event.preventDefault();
 		const db = firebase.firestore();
 
-		//returns DocumentReference for the user just created
-		const userRefPath = (
-			await db.collection("users").add({
+		//creates doc in FireStore; returns DocumentReference path for the doc just created
+		const techniquesRefPath = (
+			await db.collection("techniques").add({
+				startingPosition: this.state.startingPosition,
+				topBottom: this.state.topBottom,
+				offenseDefense: this.state.offenseDefense,
+				endsInSubmission: this.state.endsInSubmission,
 				fullname: this.state.fullname,
-				email: this.state.email,
 			})
 		).path;
 
-		const userDocData = (await db.doc(userRefPath).get()).data(); // data() doesn't return a promise
-		const usersCollection = (await db.collection("users").get()).docs;
+		const techniquesCollection = (await db.collection("techniques").get()).docs;
 
-		const usersDocsDataArr = usersCollection.map((QueryDocSnap) => {
+		const techniquesDocsDataArr = techniquesCollection.map((QueryDocSnap) => {
 			return JSON.stringify(QueryDocSnap.data());
 		});
 
-		// console.log(usersDocsDataArr);
+		this.setState({
+			startingPosition: "closedGuard",
+			topBottom: "top",
+			offenseDefense: "offense",
+			endsInSubmission: "no",
+			fullname: "",
+			firebaseData: techniquesDocsDataArr,
+		});
+	};
 
-		// const email = userDocData.email;
-		// const fullname = userDocData.fullname;
+	addUserToFirebase = async (event) => {
+		event.preventDefault();
+		const auth = firebase.auth();
 
-		// const firebaseData = `email: ${email}, fullname: ${fullname}`;
+		// get user input
+		const email = this.state.email;
+		const password = this.state.password;
+
+		// sign up the user
+		auth
+			.createUserWithEmailAndPassword(email, password)
+			.then((cred) => {
+				alert("thank you for signing up. you are now signed in");
+				console.log(cred);
+			})
+			.catch((error) => {
+				const errorCode = error.code;
+				const errorMessage = error.message;
+				if (errorCode === "auth/weak-password") {
+					alert("password is too weak");
+				} else {
+					alert(errorMessage);
+				}
+			});
 
 		this.setState({
-			fullname: " ",
-			email: " ",
-			firebaseData: usersDocsDataArr,
+			email: "",
+			password: "",
 		});
-
-		// console.log(this.state);
 	};
 
 	render() {
 		return (
 			<div>
-				<AddUser
-					addUser={this.addUser}
+				<AddTechnique
+					onSubmit={this.pushTechniqueToFirebase}
 					onChange={this.updateInput}
+					startingPosition={this.state.startingPosition}
+					topBottom={this.state.topBottom}
+					offenseDefense={this.state.offenseDefense}
+					endsInSubmission={this.state.endsInSubmission}
+					endingPosition={this.state.endingPosition}
 					fullname={this.state.fullname}
+				></AddTechnique>
+				<ShowFirebaseData data={this.state.firebaseData}></ShowFirebaseData>
+				<AddUser
+					onSubmit={this.addUserToFirebase}
+					onChange={this.updateInput}
 					email={this.state.email}
+					password={this.state.password}
 				></AddUser>
-				<ShowUser data={this.state.firebaseData}></ShowUser>
 			</div>
 		);
 	}

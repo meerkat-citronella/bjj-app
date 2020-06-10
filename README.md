@@ -1,5 +1,8 @@
 Brazilian Jiu Jitsu app. Very work in progress at the moment.
 
+Firebase Auth tutorial:
+https://www.youtube.com/watch?v=wkdCpktUfGg&t=607s
+
 ---------------- REACT BOILERPLATE ----------------
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
