@@ -1,10 +1,10 @@
 import React from "react";
 
-class AddUser extends React.Component {
+class SignIn extends React.Component {
 	render() {
 		return (
 			<div>
-				<h2>Sign Up!</h2>
+				<h2>Sign In</h2>
 				<form onSubmit={this.props.onSubmit}>
 					<input
 						type="text"
@@ -20,11 +20,16 @@ class AddUser extends React.Component {
 						onChange={this.props.onChange}
 						value={this.props.password}
 					></input>
-					<button type="submit">Sign Up</button>
+					<button
+						type="submit"
+						disabled={this.props.signedIn === true ? true : false}
+					>
+						Sign In
+					</button>
 				</form>
 			</div>
 		);
 	}
 }
 
-export default AddUser;
+export default SignIn;

@@ -6,7 +6,25 @@ class ShowFirebaseData extends React.Component {
 
 		let liArray = [];
 		Array.isArray(firebaseData)
-			? (liArray = firebaseData.map((item, i) => <li key={i}>{item}</li>))
+			? (liArray = firebaseData.map((item, i) => {
+					const technique = JSON.parse(item);
+
+					return (
+						<li key={i}>
+							{
+								<ul>
+									<li>
+										<h3>{technique.fullname}</h3>
+									</li>
+									<li>ends in submission? {technique.endsInSubmission}</li>
+									<li>offense or defenser? {technique.offenseDefense}</li>
+									<li>starting position: {technique.startingPosition}</li>
+									<li>top or bottom? {technique.topBottom}</li>
+								</ul>
+							}
+						</li>
+					);
+			  }))
 			: (liArray = "");
 
 		return (
