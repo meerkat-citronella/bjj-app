@@ -7,13 +7,15 @@ import AddTechnique from "./widgets/AddTechnique";
 import ShowFirebaseData from "./widgets/ShowFirebaseData";
 import AddUser from "./widgets/AddUser";
 import SignIn from "./widgets/SignIn";
+import SignedInAs from "./widgets/SignedInAs";
 import LogOut from "./widgets/LogOut";
+import DynamicSelect from "./widgets/DynamicSelect";
 
 class App extends React.Component {
 	constructor() {
 		super();
 		this.state = {
-			// add technique to firebase
+			// add technique
 			startingPosition: "choose",
 			topBottom: "top",
 			offenseDefense: "offense",
@@ -29,31 +31,44 @@ class App extends React.Component {
 
 			// signed in
 			signedIn: false,
+
+			// DynamicSelect
+			addPosition: "",
+			positionsArray: "",
+			startingPositionDYNAMICSELECT: "",
 		};
 	}
 
 	async componentDidMount() {
-		const db = firebase.firestore();
-
-		if (this.state.uid !== "") {
-			console.log("rendering: ", this.state.uid);
-
-			const techniquesCollection = (await db.collection(this.state.uid).get())
-				.docs;
-
-			const techniquesDocsDataArr = techniquesCollection.map((QueryDocSnap) => {
-				return JSON.stringify(QueryDocSnap.data());
-			});
-
-			this.setState({
-				firebaseData: techniquesDocsDataArr,
-			});
-		}
+		this.showTechniques();
+		this.showPositions();
 	}
 
 	////// GENERAL //////
 	updateInput = (event) => {
 		this.setState({ [event.target.name]: event.target.value });
+	};
+
+	showTechniques = async () => {
+		const db = firebase.firestore();
+
+		if (this.state.uid !== "") {
+			const techniquesCollection = (
+				await db
+					.collection("users")
+					.doc(this.state.uid)
+					.collection("techniques")
+					.get()
+			).docs;
+
+			const techniquesArr = techniquesCollection.map((QueryDocSnap) => {
+				return JSON.stringify(QueryDocSnap.data());
+			});
+
+			this.setState({
+				firebaseData: techniquesArr,
+			});
+		}
 	};
 
 	////// Add Technique //////
@@ -62,35 +77,29 @@ class App extends React.Component {
 		const db = firebase.firestore();
 
 		//creates doc in FireStore; returns DocumentReference path for the doc just created
-		const techniquesRefPath = (
-			await db.collection(this.state.uid).add({
+
+		await db
+			.collection("users")
+			.doc(this.state.uid)
+			.collection("techniques")
+			.doc(this.state.fullname)
+			.set({
 				startingPosition: this.state.startingPosition,
 				topBottom: this.state.topBottom,
 				offenseDefense: this.state.offenseDefense,
 				endsInSubmission: this.state.endsInSubmission,
 				fullname: this.state.fullname,
-			})
-		).path;
+			});
 
-		const techniquesCollection = (await db.collection(this.state.uid).get())
-			.docs;
-
-		const techniquesDocsDataArr = techniquesCollection.map((QueryDocSnap) => {
-			return JSON.stringify(QueryDocSnap.data());
-		});
-
+		this.showTechniques();
 		this.setState({
 			startingPosition: "closedGuard",
 			topBottom: "top",
 			offenseDefense: "offense",
 			endsInSubmission: "no",
 			fullname: "",
-			firebaseData: techniquesDocsDataArr,
 		});
 	};
-
-	////// Show Technique //////
-	showTechniques = async (event) => {};
 
 	////// Add User //////
 	addUserToFirebase = async (event) => {
@@ -110,7 +119,8 @@ class App extends React.Component {
 					signedIn: true,
 					uid: cred.user.uid,
 				});
-				this.componentDidMount();
+				this.showTechniques();
+				this.showPositions();
 			})
 			.catch((error) => {
 				const errorCode = error.code;
@@ -146,7 +156,8 @@ class App extends React.Component {
 					signedIn: true,
 					uid: cred.user.uid,
 				});
-				this.componentDidMount();
+				this.showTechniques();
+				this.showPositions();
 			})
 			.catch((error) => {
 				var errorCode = error.code;
@@ -180,6 +191,68 @@ class App extends React.Component {
 		});
 	};
 
+	////// Dynamic Select //////
+
+	// addPosition
+	addNewPosition = async (event) => {
+		event.preventDefault();
+		const db = firebase.firestore();
+
+		const uid = this.state.uid;
+		const addPosition = this.state.addPosition;
+
+		// handle blank pos
+		if (this.state.addPosition !== "") {
+			// define firestore pos ref
+			const newPositionRef = db
+				.collection("users")
+				.doc(uid)
+				.collection("positions")
+				.doc(addPosition);
+
+			newPositionRef.get().then(async (docSnap) => {
+				// does it exist already?
+				if (docSnap.exists) {
+					alert("position already exists");
+					// if not, add
+				} else {
+					(await newPositionRef).set({ position: addPosition });
+					this.showPositions();
+					alert("position added!");
+				}
+			});
+
+			this.setState({
+				addPosition: "",
+			});
+		} else {
+			alert("don't add a blank position!");
+		}
+	};
+
+	// show positions
+	showPositions = async () => {
+		const db = firebase.firestore();
+
+		if (this.state.uid !== "") {
+			const positionsCollection = (
+				await db
+					.collection("users")
+					.doc(this.state.uid)
+					.collection("positions")
+					.get()
+			).docs;
+
+			const positionsArr = positionsCollection.map((QueryDocSnap) => {
+				return JSON.stringify(QueryDocSnap.data());
+			});
+
+			this.setState({
+				positionsArray: positionsArr,
+			});
+		}
+	};
+
 	render() {
 		return (
 			<div>
@@ -208,7 +281,17 @@ class App extends React.Component {
 					password={this.state.password}
 					signedIn={this.state.signedIn}
 				></SignIn>
+				<SignedInAs uid={this.state.uid}></SignedInAs>
 				<LogOut onSubmit={this.logOut} signedIn={this.state.signedIn}></LogOut>
+				<DynamicSelect
+					onChange={this.updateInput}
+					addNewPosition={this.addNewPosition}
+					addPosition={this.state.addPosition}
+					startingPositionDYNAMICSELECT={
+						this.state.startingPositionDYNAMICSELECT
+					}
+					positionsArray={this.state.positionsArray}
+				></DynamicSelect>
 			</div>
 		);
 	}
