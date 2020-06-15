@@ -6,11 +6,13 @@ class LogOut extends React.Component {
 			<div>
 				<p>
 					<strong>Logout</strong>
-					<form
-						onSubmit={this.props.onSubmit}
-						disabled={this.props.signedIn ? false : true}
-					>
-						<button type="submit">Logout</button>
+					<form onSubmit={this.props.onSubmit}>
+						<button
+							type="submit"
+							disabled={this.props.uid !== "" ? false : true}
+						>
+							Logout
+						</button>
 					</form>
 				</p>
 			</div>

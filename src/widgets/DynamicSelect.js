@@ -28,7 +28,9 @@ class DynamicSelect extends React.Component {
 							value={this.props.addPosition}
 						></input>
 					</label>
-					<button type="submit">Add position</button>
+					<button type="submit" disabled={this.props.uid !== "" ? false : true}>
+						Add position
+					</button>
 				</form>
 				<form>
 					<label>

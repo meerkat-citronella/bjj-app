@@ -20,10 +20,7 @@ class SignIn extends React.Component {
 						onChange={this.props.onChange}
 						value={this.props.password}
 					></input>
-					<button
-						type="submit"
-						disabled={this.props.signedIn === true ? true : false}
-					>
+					<button type="submit" disabled={this.props.uid !== "" ? true : false}>
 						Sign In
 					</button>
 				</form>

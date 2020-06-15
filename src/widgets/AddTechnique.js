@@ -114,7 +114,9 @@ class AddTechnique extends React.Component {
 					</label>
 				</div>
 				<div>
-					<button type="submit">Submit</button>
+					<button type="submit" disabled={this.props.uid !== "" ? false : true}>
+						Submit
+					</button>
 				</div>
 			</form>
 		);

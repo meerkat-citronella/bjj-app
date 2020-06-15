@@ -21,16 +21,13 @@ class App extends React.Component {
 			offenseDefense: "offense",
 			endsInSubmission: "no",
 			endingPosition: "choose",
-			fullname: "", //DEFUNCT
+			fullname: "",
 			firebaseData: "",
 
 			// user
 			email: "",
 			password: "",
 			uid: "",
-
-			// signed in
-			signedIn: false,
 
 			// DynamicSelect
 			addPosition: "",
@@ -116,7 +113,6 @@ class App extends React.Component {
 			.then((cred) => {
 				alert("thank you for signing up. you are now signed in");
 				this.setState({
-					signedIn: true,
 					uid: cred.user.uid,
 				});
 				this.showTechniques();
@@ -153,7 +149,6 @@ class App extends React.Component {
 			.then((cred) => {
 				alert("you are now signed in.");
 				this.setState({
-					signedIn: true,
 					uid: cred.user.uid,
 				});
 				this.showTechniques();
@@ -186,8 +181,8 @@ class App extends React.Component {
 
 		this.setState({
 			firebaseData: "",
+			positionsArray: "",
 			uid: "",
-			signedIn: false,
 		});
 	};
 
@@ -265,6 +260,7 @@ class App extends React.Component {
 					endsInSubmission={this.state.endsInSubmission}
 					endingPosition={this.state.endingPosition}
 					fullname={this.state.fullname}
+					uid={this.state.uid}
 				></AddTechnique>
 				<ShowFirebaseData data={this.state.firebaseData}></ShowFirebaseData>
 				<AddUser
@@ -272,17 +268,16 @@ class App extends React.Component {
 					onChange={this.updateInput}
 					email={this.state.email}
 					password={this.state.password}
-					signedIn={this.state.signedIn}
 				></AddUser>
 				<SignIn
 					onSubmit={this.signIn}
 					onChange={this.updateInput}
 					email={this.state.email}
 					password={this.state.password}
-					signedIn={this.state.signedIn}
+					uid={this.state.uid}
 				></SignIn>
 				<SignedInAs uid={this.state.uid}></SignedInAs>
-				<LogOut onSubmit={this.logOut} signedIn={this.state.signedIn}></LogOut>
+				<LogOut onSubmit={this.logOut} uid={this.state.uid}></LogOut>
 				<DynamicSelect
 					onChange={this.updateInput}
 					addNewPosition={this.addNewPosition}
@@ -291,6 +286,7 @@ class App extends React.Component {
 						this.state.startingPositionDYNAMICSELECT
 					}
 					positionsArray={this.state.positionsArray}
+					uid={this.state.uid}
 				></DynamicSelect>
 			</div>
 		);
