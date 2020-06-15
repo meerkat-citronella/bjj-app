@@ -16,10 +16,13 @@ class ShowFirebaseData extends React.Component {
 									<li>
 										<h3>{technique.fullname}</h3>
 									</li>
+									<li>{technique.offenseDefense}</li>
+									<li>
+										starting position: {technique.startingPosition},{" "}
+										{technique.topBottom}
+									</li>
 									<li>ends in submission? {technique.endsInSubmission}</li>
-									<li>offense or defenser? {technique.offenseDefense}</li>
-									<li>starting position: {technique.startingPosition}</li>
-									<li>top or bottom? {technique.topBottom}</li>
+									<li>ending position: {technique.endingPosition}</li>
 								</ul>
 							}
 						</li>

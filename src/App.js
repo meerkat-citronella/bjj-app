@@ -9,18 +9,17 @@ import AddUser from "./widgets/AddUser";
 import SignIn from "./widgets/SignIn";
 import SignedInAs from "./widgets/SignedInAs";
 import LogOut from "./widgets/LogOut";
-import DynamicSelect from "./widgets/DynamicSelect";
 
 class App extends React.Component {
 	constructor() {
 		super();
 		this.state = {
 			// add technique
-			startingPosition: "choose",
+			startingPosition: "",
 			topBottom: "top",
 			offenseDefense: "offense",
 			endsInSubmission: "no",
-			endingPosition: "choose",
+			endingPosition: "",
 			fullname: "",
 			firebaseData: "",
 
@@ -32,16 +31,15 @@ class App extends React.Component {
 			// DynamicSelect
 			addPosition: "",
 			positionsArray: "",
-			startingPositionDYNAMICSELECT: "",
 		};
 	}
 
+	////// GENERAL //////
 	async componentDidMount() {
 		this.showTechniques();
 		this.showPositions();
 	}
 
-	////// GENERAL //////
 	updateInput = (event) => {
 		this.setState({ [event.target.name]: event.target.value });
 	};
@@ -68,34 +66,97 @@ class App extends React.Component {
 		}
 	};
 
+	showPositions = async () => {
+		const db = firebase.firestore();
+
+		if (this.state.uid !== "") {
+			const positionsCollection = (
+				await db
+					.collection("users")
+					.doc(this.state.uid)
+					.collection("positions")
+					.get()
+			).docs;
+
+			const positionsArr = positionsCollection.map((QueryDocSnap) => {
+				return JSON.stringify(QueryDocSnap.data());
+			});
+
+			this.setState({
+				positionsArray: positionsArr,
+			});
+		}
+	};
+
 	////// Add Technique //////
 	pushTechniqueToFirebase = async (event) => {
 		event.preventDefault();
 		const db = firebase.firestore();
 
 		//creates doc in FireStore; returns DocumentReference path for the doc just created
+		if (this.state.fullname !== "") {
+			await db
+				.collection("users")
+				.doc(this.state.uid)
+				.collection("techniques")
+				.doc(this.state.fullname)
+				.set({
+					startingPosition: this.state.startingPosition,
+					topBottom: this.state.topBottom,
+					offenseDefense: this.state.offenseDefense,
+					endsInSubmission: this.state.endsInSubmission,
+					endingPosition: this.state.endingPosition,
+					fullname: this.state.fullname,
+				});
 
-		await db
-			.collection("users")
-			.doc(this.state.uid)
-			.collection("techniques")
-			.doc(this.state.fullname)
-			.set({
-				startingPosition: this.state.startingPosition,
-				topBottom: this.state.topBottom,
-				offenseDefense: this.state.offenseDefense,
-				endsInSubmission: this.state.endsInSubmission,
-				fullname: this.state.fullname,
+			this.showTechniques();
+			this.setState({
+				startingPosition: "",
+				topBottom: "top",
+				offenseDefense: "offense",
+				endsInSubmission: "no",
+				endingPosition: "",
+				fullname: "",
+			});
+		} else {
+			alert("add technique name before submitting");
+		}
+	};
+
+	addNewPosition = async (event) => {
+		event.preventDefault();
+		const db = firebase.firestore();
+
+		const uid = this.state.uid;
+		const addPosition = this.state.addPosition;
+
+		// handle blank pos
+		if (this.state.addPosition !== "") {
+			// define firestore pos ref
+			const newPositionRef = db
+				.collection("users")
+				.doc(uid)
+				.collection("positions")
+				.doc(addPosition);
+
+			newPositionRef.get().then(async (docSnap) => {
+				// does it exist already?
+				if (docSnap.exists) {
+					alert("position already exists");
+					// if not, add
+				} else {
+					(await newPositionRef).set({ position: addPosition });
+					this.showPositions();
+					alert("position added!");
+				}
 			});
 
-		this.showTechniques();
-		this.setState({
-			startingPosition: "closedGuard",
-			topBottom: "top",
-			offenseDefense: "offense",
-			endsInSubmission: "no",
-			fullname: "",
-		});
+			this.setState({
+				addPosition: "",
+			});
+		} else {
+			alert("don't add a blank position!");
+		}
 	};
 
 	////// Add User //////
@@ -186,81 +247,23 @@ class App extends React.Component {
 		});
 	};
 
-	////// Dynamic Select //////
-
-	// addPosition
-	addNewPosition = async (event) => {
-		event.preventDefault();
-		const db = firebase.firestore();
-
-		const uid = this.state.uid;
-		const addPosition = this.state.addPosition;
-
-		// handle blank pos
-		if (this.state.addPosition !== "") {
-			// define firestore pos ref
-			const newPositionRef = db
-				.collection("users")
-				.doc(uid)
-				.collection("positions")
-				.doc(addPosition);
-
-			newPositionRef.get().then(async (docSnap) => {
-				// does it exist already?
-				if (docSnap.exists) {
-					alert("position already exists");
-					// if not, add
-				} else {
-					(await newPositionRef).set({ position: addPosition });
-					this.showPositions();
-					alert("position added!");
-				}
-			});
-
-			this.setState({
-				addPosition: "",
-			});
-		} else {
-			alert("don't add a blank position!");
-		}
-	};
-
-	// show positions
-	showPositions = async () => {
-		const db = firebase.firestore();
-
-		if (this.state.uid !== "") {
-			const positionsCollection = (
-				await db
-					.collection("users")
-					.doc(this.state.uid)
-					.collection("positions")
-					.get()
-			).docs;
-
-			const positionsArr = positionsCollection.map((QueryDocSnap) => {
-				return JSON.stringify(QueryDocSnap.data());
-			});
-
-			this.setState({
-				positionsArray: positionsArr,
-			});
-		}
-	};
-
+	/////// RENDER //////
 	render() {
 		return (
 			<div>
 				<AddTechnique
-					onSubmit={this.pushTechniqueToFirebase}
+					pushTechniqueToFirebase={this.pushTechniqueToFirebase}
 					onChange={this.updateInput}
 					startingPosition={this.state.startingPosition}
 					topBottom={this.state.topBottom}
 					offenseDefense={this.state.offenseDefense}
+					addPosition={this.state.addPosition}
+					addNewPosition={this.addNewPosition}
 					endsInSubmission={this.state.endsInSubmission}
 					endingPosition={this.state.endingPosition}
 					fullname={this.state.fullname}
 					uid={this.state.uid}
+					positionsArray={this.state.positionsArray}
 				></AddTechnique>
 				<ShowFirebaseData data={this.state.firebaseData}></ShowFirebaseData>
 				<AddUser
@@ -278,16 +281,6 @@ class App extends React.Component {
 				></SignIn>
 				<SignedInAs uid={this.state.uid}></SignedInAs>
 				<LogOut onSubmit={this.logOut} uid={this.state.uid}></LogOut>
-				<DynamicSelect
-					onChange={this.updateInput}
-					addNewPosition={this.addNewPosition}
-					addPosition={this.state.addPosition}
-					startingPositionDYNAMICSELECT={
-						this.state.startingPositionDYNAMICSELECT
-					}
-					positionsArray={this.state.positionsArray}
-					uid={this.state.uid}
-				></DynamicSelect>
 			</div>
 		);
 	}

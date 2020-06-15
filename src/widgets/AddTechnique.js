@@ -2,8 +2,18 @@ import React from "react";
 
 class AddTechnique extends React.Component {
 	render() {
+		let positionsArray = this.props.positionsArray;
+
+		let optionsArray = [];
+		if (Array.isArray(positionsArray)) {
+			optionsArray = positionsArray.map((item) => {
+				const position = JSON.parse(item).position;
+				return <option value={position}>{position}</option>;
+			});
+		}
+
 		return (
-			<form onSubmit={this.props.onSubmit}>
+			<form>
 				<div>
 					<input
 						type="text"
@@ -38,18 +48,31 @@ class AddTechnique extends React.Component {
 				<div>
 					<label>
 						Starting Position:
-						<select
-							name="startingPosition"
-							value={this.props.startingPosition}
-							onChange={this.props.onChange}
-						>
-							<option value="choose">(choose)</option>
-							<option value="closedGuard">Closed Guard</option>
-							<option value="spiderGuard">Spider Guard</option>
-							<option value="legLasso">Leg Lasso</option>
-							<option value="sideControl">Side Control</option>
-						</select>
+						<div>
+							<select
+								name="startingPosition"
+								value={this.props.startingPosition}
+								onChange={this.props.onChange}
+								className="select"
+								multiple
+							>
+								{optionsArray}
+							</select>
+						</div>
 					</label>
+				</div>
+				<div>
+					<label>
+						Or, add a new position:
+						<input
+							type="tex"
+							name="addPosition"
+							placeholder="add a position"
+							onChange={this.props.onChange}
+							value={this.props.addPosition}
+						></input>
+					</label>
+					<button onClick={this.props.addNewPosition}>Add position</button>
 				</div>
 				<div>
 					<label>
@@ -99,22 +122,25 @@ class AddTechnique extends React.Component {
 				<div>
 					<label>
 						Ending Position:
-						<select
-							name="endingPosition"
-							value={this.props.endingPosition}
-							onChange={this.props.onChange}
-							disabled={this.props.endsInSubmission === "yes" ? true : false}
-						>
-							<option value="choose">(choose)</option>
-							<option value="closedGuard">Closed Guard</option>
-							<option value="spiderGuard">Spider Guard</option>
-							<option value="legLasso">Leg Lasso</option>
-							<option value="sideControl">Side Control</option>
-						</select>
+						<div>
+							<select
+								name="endingPosition"
+								value={this.props.endingPosition}
+								onChange={this.props.onChange}
+								disabled={this.props.endsInSubmission === "yes" ? true : false}
+								className="select"
+								multiple
+							>
+								{optionsArray}
+							</select>
+						</div>
 					</label>
 				</div>
 				<div>
-					<button type="submit" disabled={this.props.uid !== "" ? false : true}>
+					<button
+						onClick={this.props.pushTechniqueToFirebase}
+						disabled={this.props.uid !== "" ? false : true}
+					>
 						Submit
 					</button>
 				</div>
