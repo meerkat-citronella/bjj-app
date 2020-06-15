@@ -1,4 +1,5 @@
 import React from "react";
+import firebase from "firebase";
 
 class ShowFirebaseData extends React.Component {
 	render() {
@@ -7,10 +8,11 @@ class ShowFirebaseData extends React.Component {
 		let liArray = [];
 		Array.isArray(firebaseData)
 			? (liArray = firebaseData.map((item, i) => {
-					const technique = JSON.parse(item);
+					const techniqueId = item.id;
+					const technique = item.data();
 
 					return (
-						<li key={i}>
+						<li key={i} data-id={techniqueId}>
 							{
 								<ul>
 									<li>
@@ -23,6 +25,14 @@ class ShowFirebaseData extends React.Component {
 									</li>
 									<li>ends in submission? {technique.endsInSubmission}</li>
 									<li>ending position: {technique.endingPosition}</li>
+									<li>
+										<button
+											data-id={techniqueId}
+											onClick={this.props.deleteTechnique}
+										>
+											delete
+										</button>
+									</li>
 								</ul>
 							}
 						</li>

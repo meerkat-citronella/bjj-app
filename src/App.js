@@ -56,12 +56,8 @@ class App extends React.Component {
 					.get()
 			).docs;
 
-			const techniquesArr = techniquesCollection.map((QueryDocSnap) => {
-				return JSON.stringify(QueryDocSnap.data());
-			});
-
 			this.setState({
-				firebaseData: techniquesArr,
+				firebaseData: techniquesCollection,
 			});
 		}
 	};
@@ -93,13 +89,15 @@ class App extends React.Component {
 		event.preventDefault();
 		const db = firebase.firestore();
 
+		const docId = this.state.fullname.trim().toLowerCase().replace(/\s/gi, "-");
+
 		//creates doc in FireStore; returns DocumentReference path for the doc just created
 		if (this.state.fullname !== "") {
 			await db
 				.collection("users")
 				.doc(this.state.uid)
 				.collection("techniques")
-				.doc(this.state.fullname)
+				.doc(docId)
 				.set({
 					startingPosition: this.state.startingPosition,
 					topBottom: this.state.topBottom,
@@ -157,6 +155,19 @@ class App extends React.Component {
 		} else {
 			alert("don't add a blank position!");
 		}
+	};
+
+	deleteTechnique = async (event) => {
+		const db = firebase.firestore();
+		const docId = event.target.getAttribute("data-id");
+		await db
+			.collection("users")
+			.doc(this.state.uid)
+			.collection("techniques")
+			.doc(docId)
+			.delete();
+
+		this.showTechniques();
 	};
 
 	////// Add User //////
@@ -265,7 +276,10 @@ class App extends React.Component {
 					uid={this.state.uid}
 					positionsArray={this.state.positionsArray}
 				></AddTechnique>
-				<ShowFirebaseData data={this.state.firebaseData}></ShowFirebaseData>
+				<ShowFirebaseData
+					data={this.state.firebaseData}
+					deleteTechnique={this.deleteTechnique}
+				></ShowFirebaseData>
 				<AddUser
 					onSubmit={this.addUserToFirebase}
 					onChange={this.updateInput}
