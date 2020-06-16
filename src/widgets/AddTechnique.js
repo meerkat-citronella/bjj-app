@@ -7,8 +7,13 @@ class AddTechnique extends React.Component {
 		let optionsArray = [];
 		if (Array.isArray(positionsArray)) {
 			optionsArray = positionsArray.map((item) => {
-				const position = JSON.parse(item).position;
-				return <option value={position}>{position}</option>;
+				const position = item.data().position;
+				const positionId = item.id;
+				return (
+					<option data-id={positionId} value={position}>
+						{position}
+					</option>
+				);
 			});
 		}
 
@@ -58,6 +63,9 @@ class AddTechnique extends React.Component {
 							>
 								{optionsArray}
 							</select>
+							<button onClick={this.props.deleteStartingPosition}>
+								delete position
+							</button>
 						</div>
 					</label>
 				</div>
@@ -65,7 +73,7 @@ class AddTechnique extends React.Component {
 					<label>
 						Or, add a new position:
 						<input
-							type="tex"
+							type="text"
 							name="addPosition"
 							placeholder="add a position"
 							onChange={this.props.onChange}
@@ -133,6 +141,9 @@ class AddTechnique extends React.Component {
 							>
 								{optionsArray}
 							</select>
+							<button onClick={this.props.deleteEndingPosition}>
+								delete position
+							</button>
 						</div>
 					</label>
 				</div>

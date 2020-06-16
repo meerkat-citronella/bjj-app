@@ -74,12 +74,8 @@ class App extends React.Component {
 					.get()
 			).docs;
 
-			const positionsArr = positionsCollection.map((QueryDocSnap) => {
-				return JSON.stringify(QueryDocSnap.data());
-			});
-
 			this.setState({
-				positionsArray: positionsArr,
+				positionsArray: positionsCollection,
 			});
 		}
 	};
@@ -93,21 +89,28 @@ class App extends React.Component {
 
 		//creates doc in FireStore; returns DocumentReference path for the doc just created
 		if (this.state.fullname !== "") {
-			await db
+			const newTechniqueRef = db
 				.collection("users")
 				.doc(this.state.uid)
 				.collection("techniques")
-				.doc(docId)
-				.set({
-					startingPosition: this.state.startingPosition,
-					topBottom: this.state.topBottom,
-					offenseDefense: this.state.offenseDefense,
-					endsInSubmission: this.state.endsInSubmission,
-					endingPosition: this.state.endingPosition,
-					fullname: this.state.fullname,
-				});
+				.doc(docId);
 
-			this.showTechniques();
+			newTechniqueRef.get().then(async (docSnap) => {
+				if (docSnap.exists) {
+					alert("the technique already exists!");
+				} else {
+					(await newTechniqueRef).set({
+						startingPosition: this.state.startingPosition,
+						topBottom: this.state.topBottom,
+						offenseDefense: this.state.offenseDefense,
+						endsInSubmission: this.state.endsInSubmission,
+						endingPosition: this.state.endingPosition,
+						fullname: this.state.fullname,
+					});
+					this.showTechniques();
+				}
+			});
+
 			this.setState({
 				startingPosition: "",
 				topBottom: "top",
@@ -127,6 +130,7 @@ class App extends React.Component {
 
 		const uid = this.state.uid;
 		const addPosition = this.state.addPosition;
+		const docId = addPosition.trim().toLowerCase().replace(/\s/gi, "-");
 
 		// handle blank pos
 		if (this.state.addPosition !== "") {
@@ -135,7 +139,7 @@ class App extends React.Component {
 				.collection("users")
 				.doc(uid)
 				.collection("positions")
-				.doc(addPosition);
+				.doc(docId);
 
 			newPositionRef.get().then(async (docSnap) => {
 				// does it exist already?
@@ -168,6 +172,42 @@ class App extends React.Component {
 			.delete();
 
 		this.showTechniques();
+	};
+
+	deleteStartingPosition = async (event) => {
+		event.preventDefault();
+		const db = firebase.firestore();
+		const docId = this.state.startingPosition
+			.trim()
+			.toLowerCase()
+			.replace(/\s/gi, "-");
+
+		await db
+			.collection("users")
+			.doc(this.state.uid)
+			.collection("positions")
+			.doc(docId)
+			.delete();
+
+		this.showPositions();
+	};
+
+	deleteEndingPosition = async (event) => {
+		event.preventDefault();
+		const db = firebase.firestore();
+		const docId = this.state.endingPosition
+			.trim()
+			.toLowerCase()
+			.replace(/\s/gi, "-");
+
+		await db
+			.collection("users")
+			.doc(this.state.uid)
+			.collection("positions")
+			.doc(docId)
+			.delete();
+
+		this.showPositions();
 	};
 
 	////// Add User //////
@@ -275,6 +315,8 @@ class App extends React.Component {
 					fullname={this.state.fullname}
 					uid={this.state.uid}
 					positionsArray={this.state.positionsArray}
+					deleteStartingPosition={this.deleteStartingPosition}
+					deleteEndingPosition={this.deleteEndingPosition}
 				></AddTechnique>
 				<ShowFirebaseData
 					data={this.state.firebaseData}
